@@ -7,7 +7,7 @@ if [[ $EUID -ne 0 ]]; then
   echo "Need moar sudo, please" 1>&2
   exit 1
 fi
-homedir = "/home/radman"
+homedir="/home/radman"
 if pgrep "wpa_supplicant" > /dev/null
 then
   kill -15 $(pgrep wpa_supplicant)

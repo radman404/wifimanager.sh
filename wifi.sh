@@ -30,7 +30,7 @@ known_loc ()
       connect $ap
       break
   done
-} &> /dev/null
+}
 create_psk () {
   ssid=$1
   psk=$2

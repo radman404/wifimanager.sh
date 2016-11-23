@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/bin/bash
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # ./wifi.sh to connect to wireless networks               #
 # quicker for new nets and keeps network configs managed  #
@@ -7,7 +7,8 @@ if [[ $EUID -ne 0 ]]; then
   echo "Need moar sudo, please" 1>&2
   exit 1
 fi
-homedir="/home/radman"
+intfc="wlp4s0"    #Change to your interface
+homedir="/home/radman"  #Change to your $HOME
 if pgrep "wpa_supplicant" > /dev/null
 then
   kill -15 $(pgrep wpa_supplicant)
@@ -38,13 +39,21 @@ create_psk () {
   connect $homedir/.wpa/$ssid.cfg
 } &> /dev/null
 connect () {
-  wpa_supplicant -c $1 -i wlp4s0 -B
-  dhcpcd wlp4s0
+  wpa_supplicant -c $1 -i $intfc -B
+  dhcpcd $intfc
 } &> /dev/null
 nonwpa () {
-  iwconfig wlp4s0 essid $1
-  dhcpcd wlp4s0
-} &> /dev/null
+  iwconfig $intfc essid $1
+  dhcpcd $intfc
+} &> /dev/nul
+fuck_me_its_wep () {
+ssid=$1
+wep=$2
+iwconfig essid $1
+iwconfig key $2
+iwconfig enc on
+dhcpcd $intfc
+}
 if [[ $1 == "" ]];
 then
   known_loc
@@ -54,10 +63,14 @@ then
 elif [[ $1 == "--essid" ]];
 then
   nonwpa $2
+elif [[ $1 == "--wep" ]];
+then
+  fuck_me_its_wep $2 $3
 elif [[ $1 == "--help" ]];
 then
   printf "USAGE:\t$0 --new ESSID PSK\tMake ~/.wpa/ESSID.wpa\n"
   printf "\t$0 --essid ESSID \tFor non wpa networks\n"
+  printf "\t$0 --wep ESSID KEY \tConnect to wep network\n"
   printf "\t$0\t\t\tSelect AP from menu of AP confs in ~/.wpa\n"
-  
+
 fi
